@@ -1,0 +1,10 @@
+{
+  "name": "EquiBoomMod",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/CharamanderX/equiboommod", 
+  "description": "Adds the EquiBoom item to Risk of Rain 2, granting a chance to trigger equipment without using its charge.",
+  "dependencies": [
+    "bbepis-BepInExPack-5.4.2101",
+    "tristanmcpherson-R2API-4.4.1"
+  ]
+}
