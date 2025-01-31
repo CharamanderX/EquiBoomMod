@@ -1,0 +1,72 @@
+using BepInEx;
+using R2API;
+using R2API.Utils;
+using RoR2;
+using System;
+using UnityEngine;
+
+[BepInDependency("com.bepis.r2api")]
+[BepInPlugin("com.yourname.equiboommod", "EquiBoom Mod", "1.0.0")]
+[R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI))]
+public class EQUIBOOMMod : BaseUnityPlugin
+{
+    public static ItemDef EQUIBOOMItem;
+
+    public void Awake()
+    {
+        CreateEQUIBOOMItem();
+        AddEQUIBOOMItemHooks();
+    }
+
+    private void CreateEQUIBOOMItem()
+    {
+        EQUIBOOMItem = ScriptableObject.CreateInstance<ItemDef>();
+
+        EQUIBOOMItem.name = "EQUIBOOM";
+        EQUIBOOMItem.nameToken = "EQUIBOOM_NAME";
+        EQUIBOOMItem.pickupToken = "EQUIBOOM_PICKUP";
+        EQUIBOOMItem.descriptionToken = "EQUIBOOM_DESCRIPTION";
+        EQUIBOOMItem.loreToken = "EQUIBOOM_LORE";
+        EQUIBOOMItem.deprecatedTier = ItemTier.Tier1; // Common item
+
+        // Load custom assets
+        var assetBundle = AssetBundle.LoadFromFile(System.IO.Path.Combine(Paths.PluginPath, "EQUIBOOMmod_assets"));
+        if (assetBundle == null)
+        {
+            Logger.LogError("Failed to load AssetBundle!");
+            return;
+        }
+
+        EQUIBOOMItem.pickupModelPrefab = assetBundle.LoadAsset<GameObject>("Assets/Models/EQUIBOOMModel.prefab");
+        EQUIBOOMItem.pickupIconSprite = assetBundle.LoadAsset<Sprite>("Assets/Icons/EQUIBOOMIcon.png");
+
+        ItemAPI.Add(new CustomItem(EQUIBOOMItem, new ItemDisplayRule[0]));
+
+        // Add language tokens
+        LanguageAPI.Add("EQUIBOOM_NAME", "EquiBoom");
+        LanguageAPI.Add("EQUIBOOM_PICKUP", "5% chance to activate your equipment (+1% per stack).");
+        LanguageAPI.Add("EQUIBOOM_DESCRIPTION", "Grants a 5% chance to activate the effect of your equipped equipment (+1% for each stack).");
+        LanguageAPI.Add("EQUIBOOM_LORE", "A rare artifact of unknown origin. Equilibrium energy flows through it.");
+    }
+
+    private void AddEQUIBOOMItemHooks()
+    {
+        On.RoR2.EquipmentSlot.Update += (orig, self) =>
+        {
+            orig(self);
+
+            if (self.characterBody && self.characterBody.inventory)
+            {
+                int itemCount = self.characterBody.inventory.GetItemCount(EQUIBOOMItem);
+                if (itemCount > 0 && UnityEngine.Random.value <= 0.05f + (0.01f * itemCount))
+                {
+                    if (self.equipmentState.equipmentDef != null)
+                    {
+                        self.equipmentState.equipmentDef.cooldown = 0f; // Prevent cooldown usage
+                        self.equipmentState.OnActivate(self.characterBody, self.inputBank.GetAimRay());
+                    }
+                }
+            }
+        };
+    }
+}
