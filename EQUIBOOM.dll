@@ -29,6 +29,9 @@ public class EQUIBOOMMod : BaseUnityPlugin
         EQUIBOOMItem.loreToken = "EQUIBOOM_LORE";
         EQUIBOOMItem.deprecatedTier = ItemTier.Tier1; // Common item
 
+        // Make it look like a scrap item
+        EQUIBOOMItem.tags = new[] { ItemTag.Utility, ItemTag.Scrap }; // Adding Scrap tag
+
         // Load custom assets
         var assetBundle = AssetBundle.LoadFromFile(System.IO.Path.Combine(Paths.PluginPath, "EQUIBOOMmod_assets"));
         if (assetBundle == null)
